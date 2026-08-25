@@ -8,8 +8,18 @@ POST {{backend_HostAddress}}/api/companies
 Content-Type: application/json
 
 {
-  "UserId": "00000000-0000-0000-0000-000000000002",
-  "CompanyName": "Google",
-  "WebsiteUrl": "https://google.com",
+  "UserId": "00000000-0000-0000-0000-000000000001",
+  "CompanyName": "Microsoft",
+  "WebsiteUrl": "https://microsoft.com",
   "Industry": "Tech"
+}
+
+###Update a company
+PUT {{backend_HostAddress}}/api/companies/3/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+{
+  "CompanyName": "Google         ",
+  "WebsiteUrl": "Ichangetheurl.com",
+  "Industry": ""
 }

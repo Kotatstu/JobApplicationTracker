@@ -1,7 +1,9 @@
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace backend.Services;
 
@@ -14,27 +16,27 @@ public class CompanyService : ICompanyService
         _context = context;
     }
 
-    public async Task<List<CompanyResponeDTO>> GetAllAsync()
+    public async Task<List<CompanyResponseDTO>> GetAllAsync()
     {
-        return await _context.Companies.Select(c => new CompanyResponeDTO
+        return await _context.Companies.Select(c => new CompanyResponseDTO
         {
             Id = c.Id,
             CompanyName = c.CompanyName,
-            WebstieUrl = c.WebstieUrl,
+            WebsiteUrl = c.WebsiteUrl,
             Industry = c.Industry
         })
         .ToListAsync();
     }
 
-    private static CompanyResponeDTO MapToDTO(Company c) => new()
+    private static CompanyResponseDTO MapToDTO(Company c) => new()
     {
         Id = c.Id,
         CompanyName = c.CompanyName,
-        WebstieUrl = c.WebstieUrl,
+        WebsiteUrl = c.WebsiteUrl,
         Industry = c.Industry
     };
 
-    public async Task<(CompanyResponeDTO Company, bool WasCreated)> CreateAsync(CompanyCreateDTO dto)
+    public async Task<(CompanyResponseDTO Company, bool WasCreated)> CreateAsync(CompanyCreateDTO dto)
     {
         //First step is to check the company name, avoiding case like Google, gOOglE,...
         var normolizedName = dto.CompanyName.Trim();
@@ -51,7 +53,7 @@ public class CompanyService : ICompanyService
         {
             UserId = dto.UserId,
             CompanyName = normolizedName,
-            WebstieUrl = dto.WebsiteUrl,
+            WebsiteUrl = dto.WebsiteUrl,
             Industry = dto.Industry
         };
 
@@ -61,7 +63,7 @@ public class CompanyService : ICompanyService
         return (MapToDTO(company), true);
     }
 
-    public async Task<CompanyResponeDTO?> GetByIdAsync(int id)
+    public async Task<CompanyResponseDTO?> GetByIdAsync(int id)
     {
         var company = await _context.Companies.FindAsync(id);
 
@@ -69,5 +71,58 @@ public class CompanyService : ICompanyService
             return null;
 
         return MapToDTO(company);
+    }
+
+    public async Task<(CompanyResponseDTO?, UpdateCompanyResult)> UpdateByIdAsync(int id, Guid userId, CompanyUpdateDTO dto)
+    {
+        var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
+        if(company is null)
+            return (null, UpdateCompanyResult.NotFound);
+
+        //Check duplicate companyname
+        var normolizedName = dto.CompanyName.Trim();
+        var existing = await _context.Companies.AnyAsync(c =>
+            c.Id != id && 
+            c.CompanyName.ToLower() == normolizedName.ToLower() &&
+            c.UserId == userId);
+
+        if(existing)
+            return (null, UpdateCompanyResult.DuplicateName);
+
+        //Update CompanyName
+        company.CompanyName = dto.CompanyName;
+
+        //if null -> check if user mean deleting the field or there is no change at all
+        if(dto.WebsiteUrl is not null)
+        {   
+            if(dto.WebsiteUrl == "")
+            {
+                //Update WebsiteURL
+                company.WebsiteUrl = null;
+            }
+            else
+            {
+                //Update WebsiteURL
+                company.WebsiteUrl = dto.WebsiteUrl;
+            }
+        }
+
+        if(dto.Industry is not null)
+        {
+            if(dto.Industry == "")
+            {
+                //Update Industry
+                company.Industry = null;
+            }
+            else
+            {
+                //Update Industry
+                company.Industry = dto.Industry;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        return (MapToDTO(company), UpdateCompanyResult.Success);
     }
 }

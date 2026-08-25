@@ -48,4 +48,19 @@ public class CompaniesController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new {id = company.Id}, company); // -> 201
     }
+
+    [HttpPut]
+    [Route("{id}/{userId}")]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromRoute] Guid userId, [FromBody] CompanyUpdateDTO dto)
+    {
+        var (company, result) = await _companyService.UpdateByIdAsync(id, userId, dto);
+
+        return result switch
+        {
+            UpdateCompanyResult.Success => Ok(company),
+            UpdateCompanyResult.NotFound => NotFound(),
+            UpdateCompanyResult.DuplicateName => Conflict("A company with this name already exists."),
+            _ => throw new InvalidOperationException()
+        };
+    }
 }
