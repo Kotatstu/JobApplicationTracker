@@ -1,5 +1,15 @@
 @backend_HostAddress = http://localhost:5083
 
+GET {{backend_HostAddress}}/api/companies
+Content-Type: application/json
 
+### create a new company
+POST {{backend_HostAddress}}/api/companies
+Content-Type: application/json
 
-###
+{
+  "UserId": "00000000-0000-0000-0000-000000000002",
+  "CompanyName": "Google",
+  "WebsiteUrl": "https://google.com",
+  "Industry": "Tech"
+}
