@@ -19,25 +19,6 @@ of auto-creating records.
 
 ## Solution structure
 
-Monorepo, mirroring the backend+Vue split from the WMS project:
-
-```
-JobApplicationTracker/
-├── backend/
-│   ├── JobTracker.sln
-│   └── src/
-│       └── JobTracker.Api/          (single project for now)
-│           ├── Program.cs
-│           ├── appsettings.json
-│           ├── Api/                 (Controllers, DTOs)
-│           ├── Application/         (Interfaces, Services)
-│           ├── Infrastructure/      (DbContext, Repositories)
-│           └── Domain/              (Entities)
-├── frontend/
-│   └── (React app)
-└── README.md
-```
-
 **Decision**: starting as a single project with folders that mirror
 layer boundaries via namespaces (not enforced by the compiler yet).
 The intent is to split into separate projects per layer
