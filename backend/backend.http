@@ -9,9 +9,9 @@ Content-Type: application/json
 
 {
   "UserId": "00000000-0000-0000-0000-000000000001",
-  "CompanyName": "Microsoft",
-  "WebsiteUrl": "https://microsoft.com",
-  "Industry": "Tech"
+  "CompanyName": "Amazone",
+  "WebsiteUrl": "",
+  "Industry": "Logistic"
 }
 
 ###Update a company
@@ -23,3 +23,8 @@ Content-Type: application/json
   "WebsiteUrl": "Ichangetheurl.com",
   "Industry": ""
 }
+
+# Practive method, removed
+# ###DElete by id
+# DELETE {{backend_HostAddress}}/api/companies/3/00000000-0000-0000-0000-000000000001
+# Content-Type: application/json

@@ -40,10 +40,11 @@ public class CompaniesController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CompanyCreateDTO dto)
     {
         var (company, WasCreated) = await _companyService.CreateAsync(dto);
+        var result = new CompanyCreateResult {Company = company, WasExisting = !WasCreated};
 
         if(WasCreated != true)
         {
-            return Ok(company);//company already exist -> 200
+            return Ok(result);//company already exist -> 200
         }
 
         return CreatedAtAction(nameof(GetById), new {id = company.Id}, company); // -> 201
@@ -63,4 +64,14 @@ public class CompaniesController : ControllerBase
             _ => throw new InvalidOperationException()
         };
     }
+
+    // [HttpDelete]
+    // [Route("{id}/{userId}")]
+    // public async Task<IActionResult> Delete([FromRoute] int id, [FromRoute] Guid userId)
+    // {
+    //     if(await _companyService.DeleteByIdAsync(id, userId))
+    //         return NoContent();
+
+    //     return NotFound();
+    // }
 }

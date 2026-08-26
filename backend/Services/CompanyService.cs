@@ -4,6 +4,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 
 namespace backend.Services;
 
@@ -80,17 +81,17 @@ public class CompanyService : ICompanyService
             return (null, UpdateCompanyResult.NotFound);
 
         //Check duplicate companyname
-        var normolizedName = dto.CompanyName.Trim();
+        var normalizedName = dto.CompanyName.Trim();
         var existing = await _context.Companies.AnyAsync(c =>
             c.Id != id && 
-            c.CompanyName.ToLower() == normolizedName.ToLower() &&
+            c.CompanyName.ToLower() == normalizedName.ToLower() &&
             c.UserId == userId);
 
         if(existing)
             return (null, UpdateCompanyResult.DuplicateName);
 
         //Update CompanyName
-        company.CompanyName = dto.CompanyName;
+        company.CompanyName = normalizedName;
 
         //if null -> check if user mean deleting the field or there is no change at all
         if(dto.WebsiteUrl is not null)
@@ -125,4 +126,16 @@ public class CompanyService : ICompanyService
 
         return (MapToDTO(company), UpdateCompanyResult.Success);
     }
+
+    // public async Task<bool> DeleteByIdAsync(int id, Guid userId)
+    // {
+    //     var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
+    //     if(company is null)
+    //         return false;
+
+    //     _context.Companies.Remove(company);
+    //     await _context.SaveChangesAsync();
+
+    //     return true;
+    // }
 }
