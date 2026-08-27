@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Interfaces;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 builder.Services.AddControllers();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
 
 var app = builder.Build();
 

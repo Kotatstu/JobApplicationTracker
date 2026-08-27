@@ -1,5 +1,6 @@
 using backend.Data;
 using backend.DTOs;
+using backend.Interfaces;
 using backend.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +11,10 @@ namespace backend.Services;
 
 public class CompanyService : ICompanyService
 {
+    
     private readonly AppDbContext _context;
 
+    //dependency injection
     public CompanyService(AppDbContext context)
     {
         _context = context;

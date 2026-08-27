@@ -1,5 +1,7 @@
 @backend_HostAddress = http://localhost:5083
 
+//====================================================================== COMPANY ====================================================================
+
 GET {{backend_HostAddress}}/api/companies
 Content-Type: application/json
 
@@ -28,3 +30,8 @@ Content-Type: application/json
 # ###DElete by id
 # DELETE {{backend_HostAddress}}/api/companies/3/00000000-0000-0000-0000-000000000001
 # Content-Type: application/json
+
+//====================================================================== JOB APPLICATION ====================================================================
+###Get all
+{{backend_HostAddress}}/api/jobApplications
+Content-Type: application/json

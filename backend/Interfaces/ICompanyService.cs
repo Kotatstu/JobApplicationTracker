@@ -1,11 +1,11 @@
 using backend.DTOs;
+using backend.Services;
 
-namespace backend.Services;
+namespace backend.Interfaces;
 
 //Company service interface
 public interface ICompanyService
 {
-    //Task make this async
     Task<List<CompanyResponseDTO>> GetAllAsync();
     Task<(CompanyResponseDTO Company, bool WasCreated)> CreateAsync(CompanyCreateDTO dto);
     Task<CompanyResponseDTO?> GetByIdAsync(int id);
