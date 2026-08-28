@@ -16,7 +16,7 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("{userId}")]
+    [Route("getAll/{userId}")]
     public async Task<IActionResult> GetAll([FromRoute] Guid userId)
     {
         var ja = await _jobApplicationService.GetAllAsync(userId);
@@ -24,15 +24,28 @@ public class JobApplicationsController : ControllerBase
         return Ok(ja);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] JobApplicationCreateDTO dto)
+    [HttpGet]
+    [Route("getById/{id}/{userId}")]
+    public async Task<IActionResult> GetById([FromRoute] int id, [FromRoute] Guid userId)
     {
-        var (ja, result) = await _jobApplicationService.CreateAsync(dto);
+        var ja = await _jobApplicationService.GetByIdAsync(id, userId);
+
+        if(ja is null)
+            return NotFound();
+
+        return Ok(ja);
+    }
+
+    [HttpPost]
+    [Route("create/{userId}")]
+    public async Task<IActionResult> Create([FromBody] JobApplicationCreateDTO dto, [FromRoute] Guid userId)
+    {
+        var (ja, result) = await _jobApplicationService.CreateAsync(dto, userId);
 
         return result switch
         {
             JobApplicationCreateResult.CompanyNotFound => NotFound(ja),
-            JobApplicationCreateResult.Success => Ok(ja),
+            JobApplicationCreateResult.Success when ja is not null => CreatedAtAction(nameof(GetById), new {id = ja.Id, userId}, ja),
             _ => throw new InvalidOperationException()
         };
 

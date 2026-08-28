@@ -17,17 +17,18 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [Route("getAll/{userId}")]
+    public async Task<IActionResult> GetAll([FromRoute] Guid userId)
     {
-        var companise = await _companyService.GetAllAsync();
+        var companise = await _companyService.GetAllAsync(userId);
 
         return Ok(companise);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("getById/{id}/{userId}")]
+    public async Task<IActionResult> GetById([FromRoute] int id, [FromRoute] Guid userId)
     {
-        var company = await _companyService.GetByIdAsync(id);
+        var company = await _companyService.GetByIdAsync(id, userId);
         
         if(company is null)
             return NotFound();
@@ -36,9 +37,10 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CompanyCreateDTO dto)
+    [Route("create/{userId}")]
+    public async Task<IActionResult> Create([FromBody] CompanyCreateDTO dto, [FromRoute] Guid userId)
     {
-        var (company, WasCreated) = await _companyService.CreateAsync(dto);
+        var (company, WasCreated) = await _companyService.CreateAsync(dto, userId);
         var result = new CompanyCreateResult {Company = company, WasExisting = !WasCreated};
 
         if(WasCreated != true)
@@ -46,11 +48,11 @@ public class CompaniesController : ControllerBase
             return Ok(result);//company already exist -> 200
         }
 
-        return CreatedAtAction(nameof(GetById), new {id = company.Id}, company); // -> 201
+        return CreatedAtAction(nameof(GetById), new {id = company.Id, userId}, company); // -> 201
     }
 
     [HttpPut]
-    [Route("{id}/{userId}")]
+    [Route("update/{id}/{userId}")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromRoute] Guid userId, [FromBody] CompanyUpdateDTO dto)
     {
         var (company, result) = await _companyService.UpdateByIdAsync(id, userId, dto);

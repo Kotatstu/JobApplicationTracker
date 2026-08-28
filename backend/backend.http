@@ -2,26 +2,29 @@
 
 //====================================================================== COMPANY ====================================================================
 
-GET {{backend_HostAddress}}/api/companies
+GET {{backend_HostAddress}}/api/companies/getAll/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+###Get by id
+GET {{backend_HostAddress}}/api/companies/getById/4/00000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 ### create a new company
-POST {{backend_HostAddress}}/api/companies
+POST {{backend_HostAddress}}/api/companies/create/00000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 {
-  "UserId": "00000000-0000-0000-0000-000000000001",
-  "CompanyName": "Amazone",
-  "WebsiteUrl": "",
+  "CompanyName": "createATAction fix test",
+  "WebsiteUrl": "Test.com",
   "Industry": "Logistic"
 }
 
 ###Update a company
-PUT {{backend_HostAddress}}/api/companies/3/00000000-0000-0000-0000-000000000001
+PUT {{backend_HostAddress}}/api/companies/update/6/00000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 {
-  "CompanyName": "Google         ",
+  "CompanyName": "UserId tested",
   "WebsiteUrl": "Ichangetheurl.com",
   "Industry": ""
 }
@@ -33,16 +36,19 @@ Content-Type: application/json
 
 //====================================================================== JOB APPLICATION ====================================================================
 ###Get all
-GET {{backend_HostAddress}}/api/jobApplications/00000000-0000-0000-0000-000000000001
+GET {{backend_HostAddress}}/api/jobApplications/getAll/00000000-0000-0000-0000-000000000002
+Content-Type: application/json
+
+###Get by id
+GET {{backend_HostAddress}}/api/jobApplications/getById/9/00000000-0000-0000-0000-000000000002
 Content-Type: application/json
 
 ###Create new JA
-POST {{backend_HostAddress}}/api/jobApplications
+POST {{backend_HostAddress}}/api/jobApplications/create/00000000-0000-0000-0000-000000000002
 Content-Type: application/json
 
 {
-  "userId": "00000000-0000-0000-0000-000000000001",
-  "companyId": 1,
+  "companyId": 2,
   "jobTitle": "Backend Developer",
   "jobPostingUrl": "https://careers.google.com/jobs/123",
   "location": "Remote",

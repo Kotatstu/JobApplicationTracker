@@ -20,16 +20,18 @@ public class CompanyService : ICompanyService
         _context = context;
     }
 
-    public async Task<List<CompanyResponseDTO>> GetAllAsync()
+    public async Task<List<CompanyResponseDTO>> GetAllAsync(Guid userId)
     {
-        return await _context.Companies.Select(c => new CompanyResponseDTO
-        {
-            Id = c.Id,
-            CompanyName = c.CompanyName,
-            WebsiteUrl = c.WebsiteUrl,
-            Industry = c.Industry
-        })
-        .ToListAsync();
+        return await _context.Companies
+            .Where(c => c.UserId == userId)
+            .Select(c => new CompanyResponseDTO
+            {
+                Id = c.Id,
+                CompanyName = c.CompanyName,
+                WebsiteUrl = c.WebsiteUrl,
+                Industry = c.Industry
+            })
+            .ToListAsync();
     }
 
     private static CompanyResponseDTO MapToDTO(Company c) => new()
@@ -40,12 +42,12 @@ public class CompanyService : ICompanyService
         Industry = c.Industry
     };
 
-    public async Task<(CompanyResponseDTO Company, bool WasCreated)> CreateAsync(CompanyCreateDTO dto)
+    public async Task<(CompanyResponseDTO Company, bool WasCreated)> CreateAsync(CompanyCreateDTO dto, Guid userId)
     {
         //First step is to check the company name, avoiding case like Google, gOOglE,...
         var normolizedName = dto.CompanyName.Trim();
         var existing = await _context.Companies.FirstOrDefaultAsync(c =>
-            c.UserId == dto.UserId && c.CompanyName.ToLower() == normolizedName.ToLower());
+            c.UserId == userId && c.CompanyName.ToLower() == normolizedName.ToLower());
 
         //if company name is relatively exist, will not create
         if(existing != null)
@@ -55,7 +57,7 @@ public class CompanyService : ICompanyService
         
         var company = new Company
         {
-            UserId = dto.UserId,
+            UserId = userId,
             CompanyName = normolizedName,
             WebsiteUrl = dto.WebsiteUrl,
             Industry = dto.Industry
@@ -67,9 +69,11 @@ public class CompanyService : ICompanyService
         return (MapToDTO(company), true);
     }
 
-    public async Task<CompanyResponseDTO?> GetByIdAsync(int id)
+    public async Task<CompanyResponseDTO?> GetByIdAsync(int id, Guid userId)
     {
-        var company = await _context.Companies.FindAsync(id);
+        var company = await _context.Companies.FirstOrDefaultAsync(c =>
+            c.Id == id &&
+            c.UserId == userId);
 
         if(company == null)
             return null;

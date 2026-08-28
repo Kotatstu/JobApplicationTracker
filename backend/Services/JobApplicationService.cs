@@ -20,6 +20,7 @@ public class JobApplicationService : IJobApplicationService
     private static JobApplicationResponseDTO MapToDTO(JobApplication ja) => new ()
     {
         Id = ja.Id,
+        CompanyId = ja.CompanyId,
         CompanyName = ja.Company.CompanyName,
         JobTitle = ja.JobTitle,
         JobPostingUrl = ja.JobPostingUrl,
@@ -54,19 +55,33 @@ public class JobApplicationService : IJobApplicationService
         .ToListAsync();
     }
 
-    public async Task<(JobApplicationResponseDTO?, JobApplicationCreateResult)> CreateAsync(JobApplicationCreateDTO dto)
+    public async Task<JobApplicationResponseDTO?> GetByIdAsync(int id, Guid userId)
+    {
+        var ja = await _context.JobApplications
+            .Include(ja => ja.Company)
+            .FirstOrDefaultAsync(ja =>
+                ja.Id == id &&
+                ja.UserId == userId);
+
+        if(ja == null)
+            return null;
+
+        return MapToDTO(ja);
+    }    
+
+    public async Task<(JobApplicationResponseDTO?, JobApplicationCreateResult)> CreateAsync(JobApplicationCreateDTO dto, Guid userId)
     {
         //Check if the COMPANY id exist
         var existing = await _context.Companies.FirstOrDefaultAsync(c => 
             c.Id == dto.CompanyId &&
-            c.UserId == dto.UserId);
+            c.UserId == userId);
 
         if(existing is null)
             return (null, JobApplicationCreateResult.CompanyNotFound);
 
         var ja = new JobApplication
         {
-            UserId = dto.UserId,
+            UserId = userId,
             CompanyId = dto.CompanyId,
             JobTitle = dto.JobTitle,
             JobPostingUrl = dto.JobPostingUrl,
@@ -82,4 +97,5 @@ public class JobApplicationService : IJobApplicationService
 
         return (MapToDTO(ja), JobApplicationCreateResult.Success);
     }
+
 }

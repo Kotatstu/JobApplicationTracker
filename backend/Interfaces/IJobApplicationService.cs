@@ -6,6 +6,7 @@ namespace backend.Interfaces;
 
 public interface IJobApplicationService
 {
-    Task<List<JobApplicationResponseDTO>> GetAllAsync(Guid userI);
-    Task<(JobApplicationResponseDTO?, JobApplicationCreateResult)> CreateAsync(JobApplicationCreateDTO dto);
+    Task<List<JobApplicationResponseDTO>> GetAllAsync(Guid userId);
+    Task<JobApplicationResponseDTO?> GetByIdAsync(int id, Guid userId);
+    Task<(JobApplicationResponseDTO?, JobApplicationCreateResult)> CreateAsync(JobApplicationCreateDTO dto, Guid userId);
 }
