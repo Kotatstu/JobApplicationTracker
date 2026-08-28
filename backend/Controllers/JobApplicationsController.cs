@@ -1,3 +1,5 @@
+using System.Globalization;
+using backend.DTOs;
 using backend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +16,25 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [Route("{userId}")]
+    public async Task<IActionResult> GetAll([FromRoute] Guid userId)
     {
-        var ja = await _jobApplicationService.GetAllAsync();
+        var ja = await _jobApplicationService.GetAllAsync(userId);
 
         return Ok(ja);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] JobApplicationCreateDTO dto)
+    {
+        var (ja, result) = await _jobApplicationService.CreateAsync(dto);
+
+        return result switch
+        {
+            JobApplicationCreateResult.CompanyNotFound => NotFound(ja),
+            JobApplicationCreateResult.Success => Ok(ja),
+            _ => throw new InvalidOperationException()
+        };
+
     }
 }

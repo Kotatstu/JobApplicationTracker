@@ -77,11 +77,11 @@ public class CompanyService : ICompanyService
         return MapToDTO(company);
     }
 
-    public async Task<(CompanyResponseDTO?, UpdateCompanyResult)> UpdateByIdAsync(int id, Guid userId, CompanyUpdateDTO dto)
+    public async Task<(CompanyResponseDTO?, CompanyUpdateResult)> UpdateByIdAsync(int id, Guid userId, CompanyUpdateDTO dto)
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if(company is null)
-            return (null, UpdateCompanyResult.NotFound);
+            return (null, CompanyUpdateResult.NotFound);
 
         //Check duplicate companyname
         var normalizedName = dto.CompanyName.Trim();
@@ -91,7 +91,7 @@ public class CompanyService : ICompanyService
             c.UserId == userId);
 
         if(existing)
-            return (null, UpdateCompanyResult.DuplicateName);
+            return (null, CompanyUpdateResult.DuplicateName);
 
         //Update CompanyName
         company.CompanyName = normalizedName;
@@ -127,7 +127,7 @@ public class CompanyService : ICompanyService
 
         await _context.SaveChangesAsync();
 
-        return (MapToDTO(company), UpdateCompanyResult.Success);
+        return (MapToDTO(company), CompanyUpdateResult.Success);
     }
 
     // public async Task<bool> DeleteByIdAsync(int id, Guid userId)

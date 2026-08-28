@@ -1,9 +1,12 @@
+using Humanizer;
+
 namespace backend.DTOs;
 
 public class JobApplicationResponseDTO
 {
     public int Id { get; set; }
     public int CompanyId { get; set; }
+    public string CompanyName { get; set; } = string.Empty;
     public string JobTitle { get; set; } = string.Empty;
     public string? JobPostingUrl { get; set; }
     public string? Location { get; set; }

@@ -33,5 +33,19 @@ Content-Type: application/json
 
 //====================================================================== JOB APPLICATION ====================================================================
 ###Get all
-{{backend_HostAddress}}/api/jobApplications
+GET {{backend_HostAddress}}/api/jobApplications/00000000-0000-0000-0000-000000000001
 Content-Type: application/json
+
+###Create new JA
+POST {{backend_HostAddress}}/api/jobApplications
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000001",
+  "companyId": 1,
+  "jobTitle": "Backend Developer",
+  "jobPostingUrl": "https://careers.google.com/jobs/123",
+  "location": "Remote",
+  "dateApplied": "2026-08-27",
+  "notes": "Applied through referral"
+}

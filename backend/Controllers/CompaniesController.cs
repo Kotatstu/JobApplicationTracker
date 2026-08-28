@@ -1,6 +1,5 @@
 using backend.DTOs;
 using backend.Interfaces;
-using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 
@@ -58,9 +57,9 @@ public class CompaniesController : ControllerBase
 
         return result switch
         {
-            UpdateCompanyResult.Success => Ok(company),
-            UpdateCompanyResult.NotFound => NotFound(),
-            UpdateCompanyResult.DuplicateName => Conflict("A company with this name already exists."),
+            CompanyUpdateResult.Success => Ok(company),
+            CompanyUpdateResult.NotFound => NotFound(),
+            CompanyUpdateResult.DuplicateName => Conflict("A company with this name already exists."),
             _ => throw new InvalidOperationException()
         };
     }
