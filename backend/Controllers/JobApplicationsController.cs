@@ -50,4 +50,20 @@ public class JobApplicationsController : ControllerBase
         };
 
     }
+
+    [HttpPut]
+    [Route("update/{id}/{userId}")]
+    public async Task<IActionResult> Update([FromBody] JobApplicationUpdateDTO dto, int id, Guid userId)
+    {
+        var (ja, result) = await _jobApplicationService.UpdateByIdAsync(dto, id, userId);
+
+        return result switch
+        {
+            JobApplicationUpdateResponse.NotFound => NotFound(),
+            JobApplicationUpdateResponse.CompanyNotFound => NotFound(),
+            JobApplicationUpdateResponse.InvalidJobTitle => BadRequest("Job title cannot be empty"),
+            JobApplicationUpdateResponse.Success => Ok(ja),
+            _ => throw new InvalidOperationException()
+        };
+    }
 }

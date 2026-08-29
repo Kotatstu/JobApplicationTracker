@@ -55,3 +55,12 @@ Content-Type: application/json
   "dateApplied": "2026-08-27",
   "notes": "Applied through referral"
 }
+
+###Update by id
+PUT {{backend_HostAddress}}/api/JobApplications/update/5/00000000-0000-0000-0000-000000000002
+Content-Type: application/json
+
+{
+  "JobTitle": "Backend Dev",
+  "notes": "Note field got updated"
+}

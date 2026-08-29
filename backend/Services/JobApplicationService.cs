@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using backend.Data;
 using backend.DTOs;
 using backend.Interfaces;
@@ -98,4 +99,60 @@ public class JobApplicationService : IJobApplicationService
         return (MapToDTO(ja), JobApplicationCreateResult.Success);
     }
 
+    public async Task<(JobApplicationResponseDTO?, JobApplicationUpdateResponse)> UpdateByIdAsync(JobApplicationUpdateDTO dto, int id, Guid userId)
+    {
+        //Check if the updating id exist first
+        var ja = await _context.JobApplications.Include(ja => ja.Company).FirstOrDefaultAsync(ja =>
+            ja.Id == id &&
+            ja.UserId == userId);
+        
+        if(ja == null)
+            return (null, JobApplicationUpdateResponse.NotFound);
+
+        //Check if we are updating the company ID or not.
+        //If is updating the CompanyId field:
+        if(dto.CompanyId != null && ja.CompanyId != dto.CompanyId)
+        {
+            var company = await _context.Companies.AnyAsync(c =>
+                c.Id == dto.CompanyId &&
+                c.UserId == userId);
+
+            //If is updating company ID but the ID is wrong or not belong to the user then throw not found
+            if(company == false)
+                return (null, JobApplicationUpdateResponse.CompanyNotFound);
+            
+            ja.CompanyId = dto.CompanyId.Value;
+        }
+
+        //Updating other fiels/or not
+        if(dto.JobTitle != null)
+        {
+            if(dto.JobTitle.Trim() == "")
+            {
+                return (null, JobApplicationUpdateResponse.InvalidJobTitle);
+            }
+            ja.JobTitle = dto.JobTitle;
+        }
+        if(dto.JobPostingUrl != null)
+        {
+            ja.JobPostingUrl = dto.JobPostingUrl;
+        }
+        if(dto.Location != null)
+        {
+            ja.Location = dto.Location;
+        }
+        if(dto.DateApplied != null)
+        {
+            ja.DateApplied = dto.DateApplied.Value;
+        }
+        if(dto.Notes != null)
+        {
+            ja.Notes = dto.Notes;
+        }
+
+        ja.UpdatedAt = DateTime.Now;
+
+        await _context.SaveChangesAsync();
+        return (MapToDTO(ja), JobApplicationUpdateResponse.Success);
+    }
 }
