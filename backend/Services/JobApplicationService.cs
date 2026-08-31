@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
 using backend.Data;
 using backend.DTOs;
@@ -33,6 +34,7 @@ public class JobApplicationService : IJobApplicationService
         CreatedAt = ja.CreatedAt,
         UpdatedAt = ja.UpdatedAt
     };
+    
     public async Task<List<JobApplicationResponseDTO>> GetAllAsync(Guid userId)
     {
         return await _context.JobApplications
@@ -154,5 +156,37 @@ public class JobApplicationService : IJobApplicationService
 
         await _context.SaveChangesAsync();
         return (MapToDTO(ja), JobApplicationUpdateResponse.Success);
+    }
+
+    public async Task<(JobApplicationResponseDTO?, UpdateStatusResult)> UpdateStatusAsync(ChangeStatusDTO dto, int id, Guid userId)
+    {
+        var ja = await _context.JobApplications
+            .Include(ja => ja.Company)
+            .FirstOrDefaultAsync(ja =>
+                ja.Id == id &&
+                ja.UserId == userId);
+
+        if(ja == null)
+            return (null, UpdateStatusResult.NotFound);
+
+        if(dto.Status.Trim() == "")
+            return (null, UpdateStatusResult.InvalidStatus);
+
+        ja.CurrentStatus = dto.Status;
+        ja.UpdatedAt = DateTime.Now;
+
+        var h = new ApplicationStatusHistory
+        {
+            JobApplicationId = id,
+            Status = dto.Status,
+            ChangedAt = DateTime.Now,
+            Note = dto.Note,
+            Source = "Manual",
+        };
+
+        _context.ApplicationStatusHistory.Add(h);
+        await _context.SaveChangesAsync();
+
+        return (MapToDTO(ja), UpdateStatusResult.Success);
     }
 }

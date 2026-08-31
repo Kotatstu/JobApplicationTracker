@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Company> Companies { get; set; }
     public DbSet<JobApplication> JobApplications { get; set;}
+    public DbSet<ApplicationStatusHistory> ApplicationStatusHistory {get; set;}
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,13 +21,22 @@ public class AppDbContext : DbContext
             entity.HasIndex(c => new { c.UserId, c.CompanyName}).IsUnique();
         });
 
-        //Many to one relationship, restrict delete
+        //A JobApplication has one company tied to it, restrict delete
         modelBuilder.Entity<JobApplication>(entity =>
         {
            entity.HasOne(ja => ja.Company)
            .WithMany()
            .HasForeignKey(ja => ja.CompanyId)
            .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        //A ApplicationStatusHistroy has one JobApplication tied to it, will get deleted along with JA
+        modelBuilder.Entity<ApplicationStatusHistory>(entity =>
+        {
+           entity.HasOne(h => h.JobApplication)
+            .WithMany()
+            .HasForeignKey(h => h.JobApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

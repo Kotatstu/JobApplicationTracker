@@ -40,7 +40,7 @@ GET {{backend_HostAddress}}/api/jobApplications/getAll/00000000-0000-0000-0000-0
 Content-Type: application/json
 
 ###Get by id
-GET {{backend_HostAddress}}/api/jobApplications/getById/9/00000000-0000-0000-0000-000000000002
+GET {{backend_HostAddress}}/api/jobApplications/getById/5/00000000-0000-0000-0000-000000000002
 Content-Type: application/json
 
 ###Create new JA
@@ -63,4 +63,13 @@ Content-Type: application/json
 {
   "JobTitle": "Backend Dev",
   "notes": "Note field got updated"
+}
+
+###Update JA status
+POST {{backend_HostAddress}}/api/JobApplications/updateStatus/5/00000000-0000-0000-0000-000000000002
+Content-Type: application/json
+
+{
+  "Status": "Interviewing",
+  "Note": "Test note"
 }

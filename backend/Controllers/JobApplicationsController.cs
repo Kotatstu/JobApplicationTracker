@@ -1,6 +1,7 @@
 using System.Globalization;
 using backend.DTOs;
 using backend.Interfaces;
+using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -53,7 +54,7 @@ public class JobApplicationsController : ControllerBase
 
     [HttpPut]
     [Route("update/{id}/{userId}")]
-    public async Task<IActionResult> Update([FromBody] JobApplicationUpdateDTO dto, int id, Guid userId)
+    public async Task<IActionResult> Update([FromBody] JobApplicationUpdateDTO dto, [FromRoute] int id, [FromRoute] Guid userId)
     {
         var (ja, result) = await _jobApplicationService.UpdateByIdAsync(dto, id, userId);
 
@@ -63,6 +64,21 @@ public class JobApplicationsController : ControllerBase
             JobApplicationUpdateResponse.CompanyNotFound => NotFound(),
             JobApplicationUpdateResponse.InvalidJobTitle => BadRequest("Job title cannot be empty"),
             JobApplicationUpdateResponse.Success => Ok(ja),
+            _ => throw new InvalidOperationException()
+        };
+    }
+
+    [HttpPost]
+    [Route("updateStatus/{id}/{userId}")]
+    public async Task<IActionResult> UpdateStatus([FromBody] ChangeStatusDTO dto, [FromRoute]int id, [FromRoute] Guid userId)
+    {
+        var (ja, result) = await _jobApplicationService.UpdateStatusAsync(dto, id, userId);
+
+        return result switch
+        {
+            UpdateStatusResult.Success => Ok(ja),
+            UpdateStatusResult.NotFound => NotFound(),
+            UpdateStatusResult.InvalidStatus => BadRequest("Status cannot be empty"),
             _ => throw new InvalidOperationException()
         };
     }
