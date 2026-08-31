@@ -49,7 +49,7 @@ Content-Type: application/json
 
 {
   "companyId": 2,
-  "jobTitle": "Backend Developer",
+  "jobTitle": "Status History auto create test",
   "jobPostingUrl": "https://careers.google.com/jobs/123",
   "location": "Remote",
   "dateApplied": "2026-08-27",
@@ -73,3 +73,7 @@ Content-Type: application/json
   "Status": "Interviewing",
   "Note": "Test note"
 }
+
+###Get all status history
+GET {{backend_HostAddress}}/api/JobApplications/getAllStatusHistoryById/13/00000000-0000-0000-0000-000000000002
+Content-Type: application/json

@@ -96,6 +96,19 @@ public class JobApplicationService : IJobApplicationService
         };
 
         _context.JobApplications.Add(ja);
+
+        var history = new ApplicationStatusHistory
+        {
+            JobApplication = ja,
+
+            Status = "Applied",
+            ChangedAt = DateTime.Now,
+            Note = null,
+            Source = "Manual"
+        };
+
+        _context.ApplicationStatusHistory.Add(history);
+
         await _context.SaveChangesAsync();
 
         return (MapToDTO(ja), JobApplicationCreateResult.Success);
@@ -188,5 +201,29 @@ public class JobApplicationService : IJobApplicationService
         await _context.SaveChangesAsync();
 
         return (MapToDTO(ja), UpdateStatusResult.Success);
+    }
+
+    public async Task<(List<StatusHistoryEntryDTO>?, GetStatusHistoryResult)> GetStatusHistoryById(int id, Guid userId)
+    {
+        var historyExists = await _context.JobApplications
+            .AnyAsync(ja => ja.Id == id && ja.UserId == userId);
+
+        if (historyExists == false)
+            return (null, GetStatusHistoryResult.NotFound);
+
+        var history = await _context.ApplicationStatusHistory
+            .Where(h => h.JobApplicationId == id)
+            .OrderBy(h => h.ChangedAt)
+            .Select(h => new StatusHistoryEntryDTO
+            {
+                Id = h.Id,
+                Status = h.Status,
+                ChangedAt = h.ChangedAt,
+                Note = h.Note,
+                Source = h.Source
+            })
+            .ToListAsync();
+
+        return (history, GetStatusHistoryResult.Success);
     }
 }

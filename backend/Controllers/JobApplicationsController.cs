@@ -82,4 +82,18 @@ public class JobApplicationsController : ControllerBase
             _ => throw new InvalidOperationException()
         };
     }
+
+    [HttpGet]
+    [Route("getAllStatusHistoryById/{id}/{userId}")]
+    public async Task<IActionResult> GetAllStatusById([FromRoute] int id, [FromRoute] Guid userId)
+    {
+        var (h, result) = await _jobApplicationService.GetStatusHistoryById(id, userId);
+
+        return result switch
+        {
+            GetStatusHistoryResult.Success => Ok(h),
+            GetStatusHistoryResult.NotFound => NotFound(),
+            _ => throw new InvalidOperationException()
+        };
+    }
 }

@@ -1,4 +1,5 @@
 using backend.DTOs;
+using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,4 +12,5 @@ public interface IJobApplicationService
     Task<(JobApplicationResponseDTO?, JobApplicationCreateResult)> CreateAsync(JobApplicationCreateDTO dto, Guid userId);
     Task<(JobApplicationResponseDTO?, JobApplicationUpdateResponse)> UpdateByIdAsync(JobApplicationUpdateDTO dto, int id, Guid userId);
     Task<(JobApplicationResponseDTO?, UpdateStatusResult)> UpdateStatusAsync(ChangeStatusDTO dto, int id, Guid userId);
+    Task<(List<StatusHistoryEntryDTO>?, GetStatusHistoryResult)> GetStatusHistoryById(int id, Guid userId);
 }
