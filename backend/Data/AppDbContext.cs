@@ -10,9 +10,10 @@ public class AppDbContext : DbContext
         
     }
 
-    public DbSet<Company> Companies { get; set; }
+    public DbSet<Company> Companies { get; set;}
     public DbSet<JobApplication> JobApplications { get; set;}
-    public DbSet<ApplicationStatusHistory> ApplicationStatusHistory {get; set;}
+    public DbSet<ApplicationStatusHistory> ApplicationStatusHistory { get; set;}
+    public DbSet<JobPostingDetails> JobPostingDetails { get; set;}
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,16 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(h => h.JobApplicationId)
             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<JobPostingDetails>(entity =>
+        {
+            entity.HasOne(d => d.JobApplication)
+            .WithOne()
+            .HasForeignKey<JobPostingDetails>(d => d.JobApplicationId)//<> Telling which table hold the FK
+            .OnDelete(DeleteBehavior.Cascade);
+
+            //Doesnt need .HasIndex...IsUnique EF
         });
     }
 }

@@ -96,4 +96,34 @@ public class JobApplicationsController : ControllerBase
             _ => throw new InvalidOperationException()
         };
     }
+
+    [HttpPut]
+    [Route("jobPostingDetailsUpsert/{JobApplicationId}/{userId}")]
+    public async Task<IActionResult> JobPostingDetailsUpsert([FromBody] JobPostingDetailUpsertDTO dto, [FromRoute] int JobApplicationId, [FromRoute] Guid userId)
+    {
+        var (d, result) = await _jobApplicationService.UpsertAsync(dto, JobApplicationId, userId);
+
+        return result switch
+        {
+            JobPostingDetailUpsertResult.Created => CreatedAtAction(nameof(GetPostingDetailById), new { jobApplicationId = JobApplicationId, userId }, d),
+            JobPostingDetailUpsertResult.Updated => Ok(d),
+            JobPostingDetailUpsertResult.NotFound => NotFound(),
+            _ => throw new InvalidOperationException()
+        };
+    }
+
+    [HttpGet]
+    [Route("jobPostingDetailsGetById/{jobApplicationId}/{userId}")]
+    public async Task<IActionResult> GetPostingDetailById([FromRoute] int jobApplicationId, [FromRoute] Guid userId)
+    {
+        var (detail, result) = await _jobApplicationService.GetPostingDetailById(jobApplicationId, userId);
+
+        return result switch
+        {
+            GetJobPostingDetailResult.Success => Ok(detail),
+            GetJobPostingDetailResult.ApplicationNotFound => NotFound(),
+            GetJobPostingDetailResult.NoDetailsYet => Ok(new { message = "No posting details saved yet.", detail = (JobPostingDetailReponseDTO?)null }),
+            _ => throw new InvalidOperationException()
+        };
+    }
 }

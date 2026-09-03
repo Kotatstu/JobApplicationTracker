@@ -35,6 +35,15 @@ public class JobApplicationService : IJobApplicationService
         UpdatedAt = ja.UpdatedAt
     };
     
+    private static JobPostingDetailReponseDTO MapToUpsertDTO(JobPostingDetails d) => new ()
+    {
+        Id = d.Id,
+        JobApplicationId = d.JobApplicationId,
+        RawText = d.RawText,
+        DetailsJson = d.DetailsJson,
+        CreatedAt = d.CreatedAt
+    };
+
     public async Task<List<JobApplicationResponseDTO>> GetAllAsync(Guid userId)
     {
         return await _context.JobApplications
@@ -226,4 +235,68 @@ public class JobApplicationService : IJobApplicationService
 
         return (history, GetStatusHistoryResult.Success);
     }
+
+    // Look up whether a JobPostingDetails row already exists for this JobApplicationId.
+    // If no > create a new one.
+    // If yes > update the existing row's RawText/DetailsJson in place, wont touch its Id.
+    // Either way, return the current state of the row.
+    public async Task<(JobPostingDetailReponseDTO?, JobPostingDetailUpsertResult)> UpsertAsync(JobPostingDetailUpsertDTO dto, int JobApplicationId, Guid userId)
+    {
+        var JAexist = await _context.JobApplications.AnyAsync(ja =>
+            ja.Id == JobApplicationId &&
+            ja.UserId == userId);
+        
+        if(JAexist == false)
+            return (null, JobPostingDetailUpsertResult.NotFound);
+        
+        var detail = await _context.JobPostingDetails.FirstOrDefaultAsync(d => 
+            d.JobApplicationId == JobApplicationId);
+
+        //Create new JobPostingDetails
+        if(detail == null)
+        {
+            var postingDetails = new JobPostingDetails
+            {
+              JobApplicationId = JobApplicationId,
+              RawText = dto.RawText,
+              DetailsJson = dto.DetailsJson,
+              CreatedAt = DateTime.Now
+            };
+
+            _context.JobPostingDetails.Add(postingDetails);
+            await _context.SaveChangesAsync();
+
+            return (MapToUpsertDTO(postingDetails), JobPostingDetailUpsertResult.Created);
+        }
+        //Update exisiting JobPostingDetails
+        else
+        {
+            detail.RawText = dto.RawText;
+            detail.DetailsJson = dto.DetailsJson;
+
+            await _context.SaveChangesAsync();
+            return (MapToUpsertDTO(detail), JobPostingDetailUpsertResult.Updated);
+        }
+
+    }
+
+    public async Task<(JobPostingDetailReponseDTO?, GetJobPostingDetailResult)> GetPostingDetailById(int JobApplicationId, Guid userId)
+    {
+        var JAexist = await _context.JobApplications.AnyAsync(ja =>
+            ja.Id == JobApplicationId &&
+            ja.UserId == userId);
+
+        if(JAexist == false)
+            return (null, GetJobPostingDetailResult.ApplicationNotFound);
+
+        var detail = await _context.JobPostingDetails.FirstOrDefaultAsync(d =>
+            d.JobApplicationId == JobApplicationId);
+        
+        if(detail == null)
+            return (null, GetJobPostingDetailResult.NoDetailsYet);
+        else
+            return (MapToUpsertDTO(detail), GetJobPostingDetailResult.Success);
+        
+    }
 }
+

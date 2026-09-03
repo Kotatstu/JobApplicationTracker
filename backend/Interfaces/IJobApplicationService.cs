@@ -13,4 +13,6 @@ public interface IJobApplicationService
     Task<(JobApplicationResponseDTO?, JobApplicationUpdateResponse)> UpdateByIdAsync(JobApplicationUpdateDTO dto, int id, Guid userId);
     Task<(JobApplicationResponseDTO?, UpdateStatusResult)> UpdateStatusAsync(ChangeStatusDTO dto, int id, Guid userId);
     Task<(List<StatusHistoryEntryDTO>?, GetStatusHistoryResult)> GetStatusHistoryById(int id, Guid userId);
+    Task<(JobPostingDetailReponseDTO?, JobPostingDetailUpsertResult)> UpsertAsync(JobPostingDetailUpsertDTO dto, int JobApplicationId, Guid userId);
+    Task<(JobPostingDetailReponseDTO?, GetJobPostingDetailResult)> GetPostingDetailById(int JobApplicationId, Guid userId);
 }
