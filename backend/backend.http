@@ -83,10 +83,29 @@ PUT {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsUpsert/6/000000
 Content-Type: application/json
 
 {
-  "RawText": "Lorem ispum",
+  "RawText": "Lorem ispum",>
   "DetailsJson": "{\"aboutCompany\": \"A fast-growing startup\", \"whyJoinUs\": \"Great benefits and remote-first culture\"}"
 }
 
 ###Get job posting detail by job application id
 GET {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsGetById/7/00000000-0000-0000-0000-000000000002
 Content-Type: application/json
+
+//===================================================== AUTHENTICATION =============================================
+###Register
+POST {{backend_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test01@gmail.com",
+  "password": "Test1234!"
+}
+
+###Login
+POST {{backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test01@gmail.com",
+  "password": "Test1234!"
+}
