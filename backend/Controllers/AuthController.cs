@@ -1,6 +1,7 @@
 using System.Net;
 using backend.DTOs;
 using backend.Interfaces;
+using backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,46 +11,60 @@ namespace backend.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser<Guid>> _userManager;
-    private readonly ITokenService _tokenSerivce;
-    public AuthController(UserManager<IdentityUser<Guid>> userManager, ITokenService tokenService)
+    private readonly IAuthService _authService;
+    public AuthController(IAuthService authService)
     {
-        _userManager = userManager;
-        _tokenSerivce = tokenService;
+        _authService = authService;
     }
 
     [HttpPost]
     [Route("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
     {
-        var user = new IdentityUser<Guid>{ UserName = dto.Email, Email = dto.Email};
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _authService.RegisterAsync(dto);
 
-        if(result.Succeeded == false)
-            return BadRequest(result.Errors);
+        return result.Succeeded ? Ok(new { message = "Registered successfully" }) : BadRequest(result.Errors);
+    }
 
-        return Ok(new {message = "Registered succeedfully"});
+    private void SetTokenCookies(string accessToken, string refreshToken)
+    {
+        Response.Cookies.Append("access_token", accessToken, new CookieOptions
+        {
+            HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(20)
+        });
+
+        Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+        {
+            HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
     }
 
     [HttpPost]
     [Route("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
-        
-        if(user == null || await _userManager.CheckPasswordAsync(user, dto.Password) == false)
+        var tokens = await _authService.LoginAsync(dto);
+        if (tokens is null)
             return Unauthorized("Invalid credentials");
 
-        var accessToken = _tokenSerivce.GenerateAccessToken(user);
+        SetTokenCookies(tokens.Value.AccessToken, tokens.Value.RefreshToken);
+        return Ok(new { message = "Logged in successfully" });
+    }
 
-        Response.Cookies.Append("access_token", accessToken, new CookieOptions
-        {
-           HttpOnly = true,
-           Secure = true, //http will fail, work with https
-           SameSite = SameSiteMode.Lax,
-           Expires = DateTimeOffset.Now.AddMinutes(20) 
-        });
+    [HttpPost]
+    [Route("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        if (!Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
+            return Unauthorized();
 
-        return Ok(new {message = "Logged in successfully", userId = user.Id});
+        var tokens = await _authService.RefreshAsync(refreshToken);
+        if (tokens is null)
+            return Unauthorized();
+
+        SetTokenCookies(tokens.Value.AccessToken, tokens.Value.RefreshToken);
+        return Ok(new { message = "Token refreshed" });
     }
 }

@@ -109,3 +109,9 @@ Content-Type: application/json
   "email": "test01@gmail.com",
   "password": "Test1234!"
 }
+
+//Rest client cannot handle cookies very well, check for the Set-cookie response and copy past the refresh_token manually
+###Refresh token
+POST {{backend_HostAddress}}/api/auth/refresh
+Content-Type: application/json
+Cookie: refresh_token=LsUAI%2BhzZFHLSVyXNC3mD80g4CG4mmmUKbVIQ1xkCUzUdGQ9I1IdgVVuIBMZo5TIKKId1XFlMVqk%2FjG%2FAaOOdw%3D%3D

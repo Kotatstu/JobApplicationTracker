@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<IdentityUser<Guid>, IdentityRole<G
     public DbSet<JobApplication> JobApplications { get; set;}
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistory { get; set;}
     public DbSet<JobPostingDetails> JobPostingDetails { get; set;}
+    public DbSet<RefreshToken> RefreshTokens  => Set<RefreshToken>();
+
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
