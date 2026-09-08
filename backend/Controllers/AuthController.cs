@@ -67,4 +67,19 @@ public class AuthController : ControllerBase
         SetTokenCookies(tokens.Value.AccessToken, tokens.Value.RefreshToken);
         return Ok(new { message = "Token refreshed" });
     }
+
+    [HttpPost]
+    [Route("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        if (Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
+        {
+            await _authService.LogoutAsync(refreshToken);
+        }
+
+        Response.Cookies.Delete("access_token");
+        Response.Cookies.Delete("refresh_token");
+
+        return Ok(new { message = "Logged out successfully" });
+    }
 }

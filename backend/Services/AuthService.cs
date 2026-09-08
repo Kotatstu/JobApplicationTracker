@@ -84,11 +84,19 @@ public class AuthService : IAuthService
         var newAccessToken = _tokenService.GenerateAccessToken(user);
         return (newAccessToken, newRawToken);
     }
-
     
     public async Task LogoutAsync(string refreshToken)
     {
-        throw new NotImplementedException();
+        var tokenHash = _tokenService.HashToken(refreshToken);
+
+        var existing = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash && rt.RevokedAt == null);
+
+        if (existing is not null)
+        {
+            existing.RevokedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
     }
 
 }
