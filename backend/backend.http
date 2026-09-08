@@ -1,27 +1,32 @@
 @backend_HostAddress = http://localhost:5083
-
+@access_Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjU3OGQzMDEwLTBhYzctNDk3OC0wYmEzLTA4ZGYwYTU2MzdiYSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QwMUBnbWFpbC5jb20iLCJleHAiOjE3ODg4Njc4OTMsImlzcyI6IkpvYlRyYWNrZXJBcGkiLCJhdWQiOiJKb2JUcmFja2VyQ2xpZW50In0.wpsM8f9Z4gvZO7JybNR5_CG24DtlSBifmTsQxYvMwjI
+@refresh_Token = stFWLh85ETTW%2BVOHNYU2INiF%2BDIzWXjiJsd2nDlEYVx61dXJD6sKpDKsy%2F56zevYhQ2laA6r1OX8kyAVrgVVPQ%3D%3D
 //====================================================================== COMPANY ====================================================================
 
-GET {{backend_HostAddress}}/api/companies/getAll/00000000-0000-0000-0000-000000000001
+GET {{backend_HostAddress}}/api/companies/getAll
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 ###Get by id
-GET {{backend_HostAddress}}/api/companies/getById/4/00000000-0000-0000-0000-000000000001
+GET {{backend_HostAddress}}/api/companies/getById/10
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 ### create a new company
-POST {{backend_HostAddress}}/api/companies/create/00000000-0000-0000-0000-000000000001
+POST {{backend_HostAddress}}/api/companies/create
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
-  "CompanyName": "createATAction fix test",
+  "CompanyName": "Test token",
   "WebsiteUrl": "Test.com",
   "Industry": "Logistic"
 }
 
 ###Update a company
-PUT {{backend_HostAddress}}/api/companies/update/6/00000000-0000-0000-0000-000000000001
+PUT {{backend_HostAddress}}/api/companies/update/10
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
   "CompanyName": "UserId tested",
@@ -36,20 +41,23 @@ Content-Type: application/json
 
 //====================================================================== JOB APPLICATION ====================================================================
 ###Get all
-GET {{backend_HostAddress}}/api/jobApplications/getAll/00000000-0000-0000-0000-000000000002
+GET {{backend_HostAddress}}/api/jobApplications/getAll
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 ###Get by id
-GET {{backend_HostAddress}}/api/jobApplications/getById/5/00000000-0000-0000-0000-000000000002
+GET {{backend_HostAddress}}/api/jobApplications/getById/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 ###Create new JA
-POST {{backend_HostAddress}}/api/jobApplications/create/00000000-0000-0000-0000-000000000002
+POST {{backend_HostAddress}}/api/jobApplications/create
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
-  "companyId": 2,
-  "jobTitle": "Status History auto create test",
+  "companyId": 10,
+  "jobTitle": "Token test",
   "jobPostingUrl": "https://careers.google.com/jobs/123",
   "location": "Remote",
   "dateApplied": "2026-08-27",
@@ -57,8 +65,9 @@ Content-Type: application/json
 }
 
 ###Update by id
-PUT {{backend_HostAddress}}/api/JobApplications/update/5/00000000-0000-0000-0000-000000000002
+PUT {{backend_HostAddress}}/api/JobApplications/update/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
   "JobTitle": "Backend Dev",
@@ -66,8 +75,9 @@ Content-Type: application/json
 }
 
 ###Update JA status
-POST {{backend_HostAddress}}/api/JobApplications/updateStatus/5/00000000-0000-0000-0000-000000000002
+POST {{backend_HostAddress}}/api/JobApplications/updateStatus/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
   "Status": "Interviewing",
@@ -75,21 +85,24 @@ Content-Type: application/json
 }
 
 ###Get all status history
-GET {{backend_HostAddress}}/api/JobApplications/getAllStatusHistoryById/13/00000000-0000-0000-0000-000000000002
+GET {{backend_HostAddress}}/api/JobApplications/getAllStatusHistoryById/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 ###Job posting details upsert
-PUT {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsUpsert/6/00000000-0000-0000-0000-000000000002
+PUT {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsUpsert/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 {
-  "RawText": "Lorem ispum",>
+  "RawText": "Lorem ispum",
   "DetailsJson": "{\"aboutCompany\": \"A fast-growing startup\", \"whyJoinUs\": \"Great benefits and remote-first culture\"}"
 }
 
 ###Get job posting detail by job application id
-GET {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsGetById/7/00000000-0000-0000-0000-000000000002
+GET {{backend_HostAddress}}/api/JobApplications/jobPostingDetailsGetById/14
 Content-Type: application/json
+Cookie: access_token={{access_Token}}
 
 //===================================================== AUTHENTICATION =============================================
 ###Register

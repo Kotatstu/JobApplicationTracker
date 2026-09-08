@@ -8,7 +8,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/jobApplications")]
-public class JobApplicationsController : ControllerBase
+public class JobApplicationsController : ApiControllerBase
 {
     private readonly IJobApplicationService _jobApplicationService;
     public JobApplicationsController(IJobApplicationService jobApplicationService)
@@ -17,19 +17,19 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("getAll/{userId}")]
-    public async Task<IActionResult> GetAll([FromRoute] Guid userId)
+    [Route("getAll")]
+    public async Task<IActionResult> GetAll()
     {
-        var ja = await _jobApplicationService.GetAllAsync(userId);
+        var ja = await _jobApplicationService.GetAllAsync(CurrentUserId);
 
         return Ok(ja);
     }
 
     [HttpGet]
-    [Route("getById/{id}/{userId}")]
-    public async Task<IActionResult> GetById([FromRoute] int id, [FromRoute] Guid userId)
+    [Route("getById/{id}")]
+    public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var ja = await _jobApplicationService.GetByIdAsync(id, userId);
+        var ja = await _jobApplicationService.GetByIdAsync(id, CurrentUserId);
 
         if(ja is null)
             return NotFound();
@@ -38,25 +38,25 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpPost]
-    [Route("create/{userId}")]
-    public async Task<IActionResult> Create([FromBody] JobApplicationCreateDTO dto, [FromRoute] Guid userId)
+    [Route("create")]
+    public async Task<IActionResult> Create([FromBody] JobApplicationCreateDTO dto)
     {
-        var (ja, result) = await _jobApplicationService.CreateAsync(dto, userId);
+        var (ja, result) = await _jobApplicationService.CreateAsync(dto, CurrentUserId);
 
         return result switch
         {
             JobApplicationCreateResult.CompanyNotFound => NotFound(ja),
-            JobApplicationCreateResult.Success when ja is not null => CreatedAtAction(nameof(GetById), new {id = ja.Id, userId}, ja),
+            JobApplicationCreateResult.Success when ja is not null => CreatedAtAction(nameof(GetById), new {id = ja.Id, CurrentUserId}, ja),
             _ => throw new InvalidOperationException()
         };
 
     }
 
     [HttpPut]
-    [Route("update/{id}/{userId}")]
-    public async Task<IActionResult> Update([FromBody] JobApplicationUpdateDTO dto, [FromRoute] int id, [FromRoute] Guid userId)
+    [Route("update/{id}")]
+    public async Task<IActionResult> Update([FromBody] JobApplicationUpdateDTO dto, [FromRoute] int id)
     {
-        var (ja, result) = await _jobApplicationService.UpdateByIdAsync(dto, id, userId);
+        var (ja, result) = await _jobApplicationService.UpdateByIdAsync(dto, id, CurrentUserId);
 
         return result switch
         {
@@ -69,10 +69,10 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpPost]
-    [Route("updateStatus/{id}/{userId}")]
-    public async Task<IActionResult> UpdateStatus([FromBody] ChangeStatusDTO dto, [FromRoute]int id, [FromRoute] Guid userId)
+    [Route("updateStatus/{id}")]
+    public async Task<IActionResult> UpdateStatus([FromBody] ChangeStatusDTO dto, [FromRoute]int id)
     {
-        var (ja, result) = await _jobApplicationService.UpdateStatusAsync(dto, id, userId);
+        var (ja, result) = await _jobApplicationService.UpdateStatusAsync(dto, id, CurrentUserId);
 
         return result switch
         {
@@ -84,10 +84,10 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("getAllStatusHistoryById/{id}/{userId}")]
-    public async Task<IActionResult> GetAllStatusById([FromRoute] int id, [FromRoute] Guid userId)
+    [Route("getAllStatusHistoryById/{id}")]
+    public async Task<IActionResult> GetAllStatusById([FromRoute] int id)
     {
-        var (h, result) = await _jobApplicationService.GetStatusHistoryById(id, userId);
+        var (h, result) = await _jobApplicationService.GetStatusHistoryById(id, CurrentUserId);
 
         return result switch
         {
@@ -98,14 +98,14 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpPut]
-    [Route("jobPostingDetailsUpsert/{JobApplicationId}/{userId}")]
-    public async Task<IActionResult> JobPostingDetailsUpsert([FromBody] JobPostingDetailUpsertDTO dto, [FromRoute] int JobApplicationId, [FromRoute] Guid userId)
+    [Route("jobPostingDetailsUpsert/{JobApplicationId}")]
+    public async Task<IActionResult> JobPostingDetailsUpsert([FromBody] JobPostingDetailUpsertDTO dto, [FromRoute] int JobApplicationId)
     {
-        var (d, result) = await _jobApplicationService.UpsertAsync(dto, JobApplicationId, userId);
+        var (d, result) = await _jobApplicationService.UpsertAsync(dto, JobApplicationId, CurrentUserId);
 
         return result switch
         {
-            JobPostingDetailUpsertResult.Created => CreatedAtAction(nameof(GetPostingDetailById), new { jobApplicationId = JobApplicationId, userId }, d),
+            JobPostingDetailUpsertResult.Created => CreatedAtAction(nameof(GetPostingDetailById), new { jobApplicationId = JobApplicationId, CurrentUserId }, d),
             JobPostingDetailUpsertResult.Updated => Ok(d),
             JobPostingDetailUpsertResult.NotFound => NotFound(),
             _ => throw new InvalidOperationException()
@@ -113,10 +113,10 @@ public class JobApplicationsController : ControllerBase
     }
 
     [HttpGet]
-    [Route("jobPostingDetailsGetById/{jobApplicationId}/{userId}")]
-    public async Task<IActionResult> GetPostingDetailById([FromRoute] int jobApplicationId, [FromRoute] Guid userId)
+    [Route("jobPostingDetailsGetById/{jobApplicationId}")]
+    public async Task<IActionResult> GetPostingDetailById([FromRoute] int jobApplicationId)
     {
-        var (detail, result) = await _jobApplicationService.GetPostingDetailById(jobApplicationId, userId);
+        var (detail, result) = await _jobApplicationService.GetPostingDetailById(jobApplicationId, CurrentUserId);
 
         return result switch
         {

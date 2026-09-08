@@ -7,7 +7,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/companies")]
-public class CompaniesController : ControllerBase
+public class CompaniesController : ApiControllerBase
 {
     private readonly ICompanyService _companyService;
 
@@ -17,18 +17,18 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("getAll/{userId}")]
-    public async Task<IActionResult> GetAll([FromRoute] Guid userId)
+    [Route("getAll")]
+    public async Task<IActionResult> GetAll()
     {
-        var companise = await _companyService.GetAllAsync(userId);
+        var companise = await _companyService.GetAllAsync(CurrentUserId);
 
         return Ok(companise);
     }
 
-    [HttpGet("getById/{id}/{userId}")]
-    public async Task<IActionResult> GetById([FromRoute] int id, [FromRoute] Guid userId)
+    [HttpGet("getById/{id}")]
+    public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var company = await _companyService.GetByIdAsync(id, userId);
+        var company = await _companyService.GetByIdAsync(id, CurrentUserId);
         
         if(company is null)
             return NotFound();
@@ -37,10 +37,10 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpPost]
-    [Route("create/{userId}")]
-    public async Task<IActionResult> Create([FromBody] CompanyCreateDTO dto, [FromRoute] Guid userId)
+    [Route("create")]
+    public async Task<IActionResult> Create([FromBody] CompanyCreateDTO dto)
     {
-        var (company, WasCreated) = await _companyService.CreateAsync(dto, userId);
+        var (company, WasCreated) = await _companyService.CreateAsync(dto, CurrentUserId);
         var result = new CompanyCreateResult {Company = company, WasExisting = !WasCreated};
 
         if(WasCreated != true)
@@ -48,14 +48,14 @@ public class CompaniesController : ControllerBase
             return Ok(result);//company already exist -> 200
         }
 
-        return CreatedAtAction(nameof(GetById), new {id = company.Id, userId}, company); // -> 201
+        return CreatedAtAction(nameof(GetById), new {id = company.Id, CurrentUserId}, company); // -> 201
     }
 
     [HttpPut]
-    [Route("update/{id}/{userId}")]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromRoute] Guid userId, [FromBody] CompanyUpdateDTO dto)
+    [Route("update/{id}")]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CompanyUpdateDTO dto)
     {
-        var (company, result) = await _companyService.UpdateByIdAsync(id, userId, dto);
+        var (company, result) = await _companyService.UpdateByIdAsync(id, CurrentUserId, dto);
 
         return result switch
         {
