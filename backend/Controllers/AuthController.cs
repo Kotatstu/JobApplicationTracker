@@ -1,7 +1,9 @@
 using System.Net;
+using System.Security.Claims;
 using backend.DTOs;
 using backend.Interfaces;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +11,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;
     public AuthController(IAuthService authService)
@@ -19,6 +21,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
     {
         var result = await _authService.RegisterAsync(dto);
@@ -30,19 +33,24 @@ public class AuthController : ControllerBase
     {
         Response.Cookies.Append("access_token", accessToken, new CookieOptions
         {
-            HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax,
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddMinutes(20)
         });
 
         Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
         {
-            HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax,
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddDays(7)
         });
     }
 
     [HttpPost]
     [Route("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginDTO dto)
     {
         var tokens = await _authService.LoginAsync(dto);
@@ -55,6 +63,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("refresh")]
+    [AllowAnonymous]
     public async Task<IActionResult> Refresh()
     {
         if (!Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
@@ -70,6 +79,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("logout")]
+    [AllowAnonymous]
     public async Task<IActionResult> Logout()
     {
         if (Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
@@ -81,5 +91,14 @@ public class AuthController : ControllerBase
         Response.Cookies.Delete("refresh_token");
 
         return Ok(new { message = "Logged out successfully" });
+    }
+
+    //This endpoint purely for letting the frontend know are the user loged in and is valid right now
+    [HttpGet]
+    [Route("me")]
+    [AllowAnonymous]
+    public IActionResult Me()
+    {
+        return Ok(new { userId = CurrentUserId, email = User.FindFirstValue(ClaimTypes.Email) });
     }
 }
