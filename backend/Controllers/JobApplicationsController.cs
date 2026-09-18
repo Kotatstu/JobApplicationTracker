@@ -31,7 +31,7 @@ public class JobApplicationsController : ApiControllerBase
     {
         var ja = await _jobApplicationService.GetByIdAsync(id, CurrentUserId);
 
-        if(ja is null)
+        if (ja is null)
             return NotFound();
 
         return Ok(ja);
@@ -46,7 +46,7 @@ public class JobApplicationsController : ApiControllerBase
         return result switch
         {
             JobApplicationCreateResult.CompanyNotFound => NotFound(ja),
-            JobApplicationCreateResult.Success when ja is not null => CreatedAtAction(nameof(GetById), new {id = ja.Id, CurrentUserId}, ja),
+            JobApplicationCreateResult.Success when ja is not null => CreatedAtAction(nameof(GetById), new { id = ja.Id, CurrentUserId }, ja),
             _ => throw new InvalidOperationException()
         };
 
@@ -70,7 +70,7 @@ public class JobApplicationsController : ApiControllerBase
 
     [HttpPost]
     [Route("updateStatus/{id}")]
-    public async Task<IActionResult> UpdateStatus([FromBody] ChangeStatusDTO dto, [FromRoute]int id)
+    public async Task<IActionResult> UpdateStatus([FromBody] ChangeStatusDTO dto, [FromRoute] int id)
     {
         var (ja, result) = await _jobApplicationService.UpdateStatusAsync(dto, id, CurrentUserId);
 
@@ -120,9 +120,9 @@ public class JobApplicationsController : ApiControllerBase
 
         return result switch
         {
-            GetJobPostingDetailResult.Success => Ok(detail),
+            GetJobPostingDetailResult.Success => Ok(new { hasDetails = true, detail }),
             GetJobPostingDetailResult.ApplicationNotFound => NotFound(),
-            GetJobPostingDetailResult.NoDetailsYet => Ok(new { message = "No posting details saved yet.", detail = (JobPostingDetailReponseDTO?)null }),
+            GetJobPostingDetailResult.NoDetailsYet => Ok(new { hasDetails = false, detail = (JobPostingDetailReponseDTO?)null }),
             _ => throw new InvalidOperationException()
         };
     }

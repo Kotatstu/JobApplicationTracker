@@ -1,15 +1,20 @@
-import { useQuery } from '@tanstack/react-query'
+import { Routes, Route } from 'react-router-dom'
+import { LoginPage } from './pages/LoginPage'
+import { ProtectedRoute } from './routes/ProtectedRoute'
+import { ApplicationsListPage } from './pages/ApplicationsListPage'
+import { ApplicationDetailPage } from './pages/ApplicationDetailPage'
+import { CompanyDetailPage } from './pages/CompanyDetailPage'
 
 function App() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['smoke-test'],
-    queryFn: async () => 'TanStack Query is working',
-  })
-
   return (
-    <div className="p-8 bg-blue-600 text-white text-xl font-bold rounded-lg m-8">
-      {isLoading ? 'Loading...' : data}
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<ApplicationsListPage />} />
+        <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+        <Route path="/companies/:id" element={<CompanyDetailPage />} />
+      </Route>
+    </Routes>
   )
 }
 
