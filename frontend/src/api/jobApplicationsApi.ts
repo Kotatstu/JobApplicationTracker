@@ -1,7 +1,25 @@
 import { api } from './axiosInstance'
 import type { JobApplication } from '../types/jobApplication'
 import type { StatusHistoryEntry } from '../types/statusHistory'
-import type { JobPostingDetailsResult } from '../types/jobPostingDetails'
+import type { JobPostingDetails, JobPostingDetailsResult } from '../types/jobPostingDetails'
+
+export interface CreateJobApplicationInput {
+    companyId: number
+    jobTitle: string
+    jobPostingUrl?: string
+    location?: string
+    dateApplied: string
+    notes?: string
+}
+
+export interface UpdateJobApplicationInput {
+    companyId?: number
+    jobTitle?: string
+    jobPostingUrl?: string
+    location?: string
+    dateApplied?: string
+    notes?: string
+}
 
 export const jobApplicationsApi = {
     getAll: async (): Promise<JobApplication[]> => {
@@ -20,6 +38,25 @@ export const jobApplicationsApi = {
     },
     getPostingDetails: async (id: number): Promise<JobPostingDetailsResult> => {
         const response = await api.get<JobPostingDetailsResult>(`/jobApplications/jobPostingDetailsGetById/${id}`)
+        return response.data
+    },
+
+    create: async (input: CreateJobApplicationInput): Promise<JobApplication> => {
+        const response = await api.post<JobApplication>('/jobApplications/create', input)
+        return response.data
+    },
+
+    update: async (id: number, input: UpdateJobApplicationInput): Promise<JobApplication> => {
+        const response = await api.put<JobApplication>(`/jobApplications/update/${id}`, input)
+        return response.data
+    },
+    updateStatus: async (id: number, status: string, note?: string): Promise<JobApplication> => {
+        const response = await api.post<JobApplication>(`/jobApplications/updateStatus/${id}`, { status, note })
+        return response.data
+    },
+
+    upsertPostingDetails: async (id: number, rawText: string): Promise<JobPostingDetails> => {
+        const response = await api.put<JobPostingDetails>(`/jobApplications/jobPostingDetailsUpsert/${id}`, { rawText })
         return response.data
     },
 }

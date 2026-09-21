@@ -10,6 +10,10 @@ export function ApplicationsListPage() {
     return (
         <div className="p-8 max-w-3xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">Job Applications</h1>
+            <Link to="/applications/new" className="bg-blue-600 text-white px-4 py-2 rounded">
+                + New Application
+            </Link>
+
             {data && data.length === 0 ? (
                 <p className="text-gray-500">No applications yet.</p>
             ) : (

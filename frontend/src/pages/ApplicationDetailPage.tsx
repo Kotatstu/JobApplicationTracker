@@ -1,17 +1,43 @@
 import { useParams, Link } from 'react-router-dom'
 import { useJobApplication } from '../hooks/useJobApplication'
-import type { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from 'react'
+import { type Key, type ReactElement, type JSXElementConstructor, type ReactNode, type ReactPortal, useState } from 'react'
 import { useStatusHistory } from '../hooks/useStatusHistory'
 import { usePostingDetails } from '../hooks/usePostingDetails'
+import { useUpdateStatus } from '../hooks/useUpdateStatus'
+import { useUpsertPostingDetails } from '../hooks/useUpsertJobPostingDetails'
 
 export function ApplicationDetailPage() {
     const { id } = useParams<{ id: string }>()
     const { data, isLoading, isError } = useJobApplication(Number(id))
     const { data: history } = useStatusHistory(Number(id))
     const { data: postingDetails } = usePostingDetails(Number(id))
+    const [newStatus, setNewStatus] = useState('')
+    const [statusNote, setStatusNote] = useState('')
+    const updateStatusMutation = useUpdateStatus(Number(id))
+    const [isEditingPosting, setIsEditingPosting] = useState(false)
+    const [draftRawText, setDraftRawText] = useState('')
+    const upsertMutation = useUpsertPostingDetails(Number(id))
 
     if (isLoading) return <div className="p-8">Loading...</div>
     if (isError || !data) return <div className="p-8 text-red-600">Application not found.</div>
+
+    const handleStatusChange = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newStatus.trim()) return
+        await updateStatusMutation.mutateAsync({ status: newStatus, note: statusNote || undefined })
+        setNewStatus('')
+        setStatusNote('')
+    }
+
+    const startEditingPosting = () => {
+        setDraftRawText(postingDetails?.detail?.rawText ?? '')
+        setIsEditingPosting(true)
+    }
+
+    const savePostingDetails = async () => {
+        await upsertMutation.mutateAsync(draftRawText)
+        setIsEditingPosting(false)
+    }
 
     return (
         <div className="p-8 max-w-2xl mx-auto">
@@ -56,12 +82,49 @@ export function ApplicationDetailPage() {
                 </ul>
             </div>
 
+            <form onSubmit={handleStatusChange} className="mt-2 flex gap-2 items-end">
+                <input
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    placeholder="New status (e.g. Interviewing)"
+                    className="border rounded px-2 py-1 text-sm"
+                />
+                <input
+                    value={statusNote}
+                    onChange={(e) => setStatusNote(e.target.value)}
+                    placeholder="Note (optional)"
+                    className="border rounded px-2 py-1 text-sm"
+                />
+                <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                    Update
+                </button>
+            </form>
+
             <div className="mt-6">
                 <h2 className="font-semibold mb-2">Posting Details</h2>
-                {postingDetails?.hasDetails ? (
-                    <p className="text-sm whitespace-pre-wrap">{postingDetails.detail?.rawText}</p>
+                {isEditingPosting ? (
+                    <div className="flex flex-col gap-2">
+                        <textarea
+                            value={draftRawText}
+                            onChange={(e) => setDraftRawText(e.target.value)}
+                            rows={8}
+                            className="border rounded px-3 py-2 text-sm"
+                        />
+                        <div className="flex gap-2">
+                            <button onClick={savePostingDetails} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
+                            <button onClick={() => setIsEditingPosting(false)} className="text-sm text-gray-500">Cancel</button>
+                        </div>
+                    </div>
+                ) : postingDetails?.hasDetails ? (
+                    <div>
+                        <p className="text-sm whitespace-pre-wrap">{postingDetails.detail?.rawText}</p>
+                        <button onClick={startEditingPosting} className="text-blue-600 text-sm mt-2">Edit</button>
+                    </div>
                 ) : (
-                    <p className="text-sm text-gray-500">No posting details saved yet.</p>
+                    <div>
+                        <p className="text-sm text-gray-500">No posting details saved yet.</p>
+                        <button onClick={startEditingPosting} className="text-blue-600 text-sm mt-1">+ Add posting details</button>
+                    </div>
                 )}
             </div>
 
