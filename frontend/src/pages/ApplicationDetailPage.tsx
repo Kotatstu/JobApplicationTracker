@@ -1,6 +1,16 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { ArrowLeft, Building2, MapPin, Calendar, ExternalLink, Pencil, Clock } from 'lucide-react'
+import { toast } from 'sonner'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Separator } from '@/components/ui/separator'
 import { useJobApplication } from '../hooks/useJobApplication'
-import { type Key, type ReactElement, type JSXElementConstructor, type ReactNode, type ReactPortal, useState } from 'react'
 import { useStatusHistory } from '../hooks/useStatusHistory'
 import { usePostingDetails } from '../hooks/usePostingDetails'
 import { useUpdateStatus } from '../hooks/useUpdateStatus'
@@ -8,23 +18,24 @@ import { useUpsertPostingDetails } from '../hooks/useUpsertJobPostingDetails'
 
 export function ApplicationDetailPage() {
     const { id } = useParams<{ id: string }>()
-    const { data, isLoading, isError } = useJobApplication(Number(id))
-    const { data: history } = useStatusHistory(Number(id))
-    const { data: postingDetails } = usePostingDetails(Number(id))
+    const applicationId = Number(id)
+
+    const { data, isLoading, isError } = useJobApplication(applicationId)
+    const { data: history } = useStatusHistory(applicationId)
+    const { data: postingDetails } = usePostingDetails(applicationId)
+    const updateStatusMutation = useUpdateStatus(applicationId)
+    const upsertMutation = useUpsertPostingDetails(applicationId)
+
     const [newStatus, setNewStatus] = useState('')
     const [statusNote, setStatusNote] = useState('')
-    const updateStatusMutation = useUpdateStatus(Number(id))
     const [isEditingPosting, setIsEditingPosting] = useState(false)
     const [draftRawText, setDraftRawText] = useState('')
-    const upsertMutation = useUpsertPostingDetails(Number(id))
-
-    if (isLoading) return <div className="p-8">Loading...</div>
-    if (isError || !data) return <div className="p-8 text-red-600">Application not found.</div>
 
     const handleStatusChange = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newStatus.trim()) return
         await updateStatusMutation.mutateAsync({ status: newStatus, note: statusNote || undefined })
+        toast.success(`Status updated to "${newStatus}"`)
         setNewStatus('')
         setStatusNote('')
     }
@@ -36,100 +47,176 @@ export function ApplicationDetailPage() {
 
     const savePostingDetails = async () => {
         await upsertMutation.mutateAsync(draftRawText)
+        toast.success('Posting details saved')
         setIsEditingPosting(false)
     }
 
-    return (
-        <div className="p-8 max-w-2xl mx-auto">
-            <Link to="/" className="text-blue-600 text-sm">&larr; Back to applications</Link>
+    if (isLoading) {
+        return (
+            <div className="flex flex-col gap-4">
+                <Skeleton className="h-8 w-64" />
+                <Skeleton className="h-40 w-full" />
+            </div>
+        )
+    }
 
-            <h1 className="text-2xl font-bold mt-2">{data.jobTitle}</h1>
-            <Link to={`/companies/${data.companyId}`} className="text-gray-600 hover:underline">
-                {data.companyName}
+    if (isError || !data) {
+        return <p className="text-destructive">Application not found.</p>
+    }
+
+    return (
+        <div className="flex flex-col gap-6 max-w-3xl">
+            <Link to="/" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground w-fit">
+                <ArrowLeft className="h-4 w-4" />
+                Back to applications
             </Link>
 
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-                <p><span className="font-semibold">Status:</span> {data.currentStatus}</p>
-                <p><span className="font-semibold">Applied:</span> {new Date(data.dateApplied).toLocaleDateString()}</p>
-                {data.location && <p><span className="font-semibold">Location:</span> {data.location}</p>}
-                {data.jobPostingUrl && (
-                    <p>
-                        <span className="font-semibold">Posting:</span>{' '}
-                        <a href={data.jobPostingUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">
-                            View original
-                        </a>
-                    </p>
-                )}
-                <p><span className="font-semibold">Added via:</span> {data.createVia}</p>
-                <p className="text-xs text-gray-400">
-                    Created {new Date(data.createdAt).toLocaleString()} · Last updated {new Date(data.updatedAt).toLocaleString()}
-                </p>
-                {data.notes && <p><span className="font-semibold">Notes:</span> {data.notes}</p>}
-            </div>
-
-            <div className="mt-6">
-                <h2 className="font-semibold mb-2">Status History</h2>
-                <ul className="flex flex-col gap-1 text-sm">
-                    {history?.map((entry: { id: Key | null | undefined; status: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; changedAt: string | number | Date; note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
-                        <li key={entry.id} className="border-l-2 border-blue-400 pl-3">
-                            <span className="font-medium">{entry.status}</span>{' '}
-                            <span className="text-gray-500">
-                                — {new Date(entry.changedAt).toLocaleDateString()}
+            <Card>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div>
+                        <CardTitle className="text-2xl">{data.jobTitle}</CardTitle>
+                        <Link
+                            to={`/companies/${data.companyId}`}
+                            className="flex items-center gap-1.5 text-muted-foreground hover:text-primary hover:underline w-fit mt-1"
+                        >
+                            <Building2 className="h-4 w-4" />
+                            {data.companyName}
+                        </Link>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Badge>{data.currentStatus}</Badge>
+                        <Link to={`/applications/${applicationId}/edit`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                        </Link>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3">
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                            <Calendar className="h-4 w-4" />
+                            Applied {new Date(data.dateApplied).toLocaleDateString()}
+                        </span>
+                        {data.location && (
+                            <span className="flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4" />
+                                {data.location}
                             </span>
-                            {entry.note && <p className="text-gray-600 italic">{entry.note}</p>}
-                        </li>
-                    ))}
-                </ul>
-            </div>
+                        )}
+                        {data.jobPostingUrl && (
+                            <a href={data.jobPostingUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><ExternalLink className="h-4 w-4" />View posting</a>
+                        )}
+                    </div>
 
-            <form onSubmit={handleStatusChange} className="mt-2 flex gap-2 items-end">
-                <input
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    placeholder="New status (e.g. Interviewing)"
-                    className="border rounded px-2 py-1 text-sm"
-                />
-                <input
-                    value={statusNote}
-                    onChange={(e) => setStatusNote(e.target.value)}
-                    placeholder="Note (optional)"
-                    className="border rounded px-2 py-1 text-sm"
-                />
-                <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                    Update
-                </button>
-            </form>
+                    {data.notes && (
+                        <>
+                            <Separator />
+                            <p className="text-sm">{data.notes}</p>
+                        </>
+                    )}
 
-            <div className="mt-6">
-                <h2 className="font-semibold mb-2">Posting Details</h2>
-                {isEditingPosting ? (
-                    <div className="flex flex-col gap-2">
-                        <textarea
-                            value={draftRawText}
-                            onChange={(e) => setDraftRawText(e.target.value)}
-                            rows={8}
-                            className="border rounded px-3 py-2 text-sm"
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Added via {data.createVia} · Last updated {new Date(data.updatedAt).toLocaleString()}
+                    </p>
+                </CardContent>
+            </Card>
+
+            {/* Status change */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Update Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleStatusChange} className="flex flex-col sm:flex-row gap-2">
+                        <Input
+                            value={newStatus}
+                            onChange={(e) => setNewStatus(e.target.value)}
+                            placeholder="e.g. Interviewing"
+                            className="sm:flex-1"
                         />
-                        <div className="flex gap-2">
-                            <button onClick={savePostingDetails} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
-                            <button onClick={() => setIsEditingPosting(false)} className="text-sm text-gray-500">Cancel</button>
+                        <Input
+                            value={statusNote}
+                            onChange={(e) => setStatusNote(e.target.value)}
+                            placeholder="Note (optional)"
+                            className="sm:flex-1"
+                        />
+                        <Button type="submit" disabled={updateStatusMutation.isPending || !newStatus.trim()}>
+                            Update
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+
+            {/* Status history */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Status History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ol className="flex flex-col gap-4">
+                        {history?.map((entry) => (
+                            <li key={entry.id} className="flex gap-3">
+                                <div className="flex flex-col items-center">
+                                    <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5" />
+                                    <div className="w-px flex-1 bg-border mt-1" />
+                                </div>
+                                <div className="pb-2">
+                                    <p className="font-medium text-sm">{entry.status}</p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {new Date(entry.changedAt).toLocaleString()}
+                                    </p>
+                                    {entry.note && <p className="text-sm text-muted-foreground mt-1">{entry.note}</p>}
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </CardContent>
+            </Card>
+
+            {/* Posting details */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Posting Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isEditingPosting ? (
+                        <div className="flex flex-col gap-2">
+                            <Textarea
+                                value={draftRawText}
+                                onChange={(e) => setDraftRawText(e.target.value)}
+                                rows={10}
+                                placeholder="Paste the full job posting here..."
+                            />
+                            <div className="flex gap-2">
+                                <Button size="sm" onClick={savePostingDetails} disabled={upsertMutation.isPending}>
+                                    Save
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setIsEditingPosting(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ) : postingDetails?.hasDetails ? (
-                    <div>
-                        <p className="text-sm whitespace-pre-wrap">{postingDetails.detail?.rawText}</p>
-                        <button onClick={startEditingPosting} className="text-blue-600 text-sm mt-2">Edit</button>
-                    </div>
-                ) : (
-                    <div>
-                        <p className="text-sm text-gray-500">No posting details saved yet.</p>
-                        <button onClick={startEditingPosting} className="text-blue-600 text-sm mt-1">+ Add posting details</button>
-                    </div>
-                )}
-            </div>
-
+                    ) : postingDetails?.hasDetails ? (
+                        <div className="flex flex-col gap-2">
+                            <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                                {postingDetails.detail?.rawText}
+                            </p>
+                            <Button size="sm" variant="outline" className="w-fit" onClick={startEditingPosting}>
+                                <Pencil className="h-3.5 w-3.5" />
+                                Edit
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-start gap-2">
+                            <p className="text-sm text-muted-foreground">No posting details saved yet.</p>
+                            <Button size="sm" variant="outline" onClick={startEditingPosting}>
+                                + Add posting details
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
-
-        
     )
 }

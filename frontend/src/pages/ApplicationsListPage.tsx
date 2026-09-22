@@ -1,37 +1,56 @@
 import { Link } from 'react-router-dom'
+import { Building2, Calendar, Inbox } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { useJobApplications } from '../hooks/useJobApplications'
 
 export function ApplicationsListPage() {
     const { data, isLoading, isError } = useJobApplications()
 
-    if (isLoading) return <div className="p-8">Loading applications...</div>
-    if (isError) return <div className="p-8 text-red-600">Failed to load applications.</div>
+    if (isLoading) {
+        return <p className="text-muted-foreground">Loading applications...</p>
+    }
+
+    if (isError) {
+        return <p className="text-destructive">Failed to load applications.</p>
+    }
 
     return (
-        <div className="p-8 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Job Applications</h1>
-            <Link to="/applications/new" className="bg-blue-600 text-white px-4 py-2 rounded">
-                + New Application
-            </Link>
+        <div>
+            <h1 className="text-2xl font-bold mb-6">Your Applications</h1>
 
             {data && data.length === 0 ? (
-                <p className="text-gray-500">No applications yet.</p>
+                <Card>
+                    <CardContent className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
+                        <Inbox className="h-8 w-8" />
+                        <p>No applications yet — add your first one to get started.</p>
+                    </CardContent>
+                </Card>
             ) : (
-                <ul className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                     {data?.map((app) => (
-                        <li key={app.id} className="border rounded p-4 flex justify-between items-center">
-                            <Link to={`/applications/${app.id}`} className="flex-1">
-                                <div>
-                                    <p className="font-semibold">{app.jobTitle}</p>
-                                    <p className="text-sm text-gray-600">{app.companyName}</p>
-                                </div>
-                            </Link>
-                            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {app.currentStatus}
-                            </span>
-                        </li>
+                        <Link key={app.id} to={`/applications/${app.id}`}>
+                            <Card className="hover:shadow-md transition-shadow">
+                                <CardContent className="flex items-center justify-between py-4">
+                                    <div>
+                                        <p className="font-semibold">{app.jobTitle}</p>
+                                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                            <span className="flex items-center gap-1">
+                                                <Building2 className="h-3.5 w-3.5" />
+                                                {app.companyName}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="h-3.5 w-3.5" />
+                                                {new Date(app.dateApplied).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Badge variant="secondary">{app.currentStatus}</Badge>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     )

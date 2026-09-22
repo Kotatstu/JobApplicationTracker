@@ -7,6 +7,7 @@ import { CompanyDetailPage } from './pages/CompanyDetailPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { Layout } from './components/Layout'
 import { CreateApplicationPage } from './pages/CreateApplicationPage'
+import { EditApplicationPage } from './pages/EditApplicationPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/applications/:id" element={<ApplicationDetailPage />} />
           <Route path="/companies/:id" element={<CompanyDetailPage />} />
           <Route path="/applications/new" element={<CreateApplicationPage />} />
+          <Route path="/applications/:id/edit" element={<EditApplicationPage />} />
         </Route>
       </Route>
     </Routes>
